@@ -1,4 +1,5 @@
 import bpy
+import math
 
 def pt(x, y, x_offset=4.32, y_offset=2.43, scale=0.0045):
     """
@@ -44,6 +45,20 @@ def draw_rect(frame, origin, width, height):
     stroke.points[2].co = pt(x + width, y + height)
     stroke.points[3].co = pt(x, y + height)
     stroke.points[4].co = pt(x, y)
+    return stroke
+
+def draw_circle(frame, origin, radius, samples=100):
+    x, y = origin
+    stroke = frame.strokes.new()
+    stroke.display_mode = "3DSPACE"
+    stroke.points.add(count=samples)
+    for i in range(samples):
+        theta = (math.tau / (samples - 1)) * i
+        stroke.points[i].co = pt(
+            radius * math.cos(theta) + x,
+            radius * math.sin(theta) + y
+        )
+    return stroke
 
 def test0():
     """test drawing a line"""
@@ -73,3 +88,4 @@ def test2():
     for i in range(30):
         frame = get_frame(layer, i + 31)
         draw_rect(frame, (500 + i * 10, 500 - i * 10), 500, 500)
+
