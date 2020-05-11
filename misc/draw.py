@@ -1,6 +1,33 @@
 import bpy
 import math
 
+"""
+Materials
+"""
+
+def rgb(r, g, b, alpha=1):
+    """Converts colors on [0, 255] scale to [0, 1] scale."""
+    return (r / 255, g / 255, b / 255, 1)
+
+def create_material(name, pencil=None, color=None, fill=None, stroke=True):
+    material = bpy.data.materials.new(name)
+    bpy.data.materials.create_gpencil_data(material)
+    if pencil is not None:
+        pencil.materials.append(material)
+    if color is not None:
+        material.grease_pencil.color = rgb(*color)
+    material.grease_pencil.show_stroke = stroke
+    if fill is not None:
+        material.grease_pencil.show_fill = True
+        material.grease_pencil.fill_color = rgb(*fill)
+    else:
+        material.grease_pencil.show_fill = False
+    return material
+
+"""
+Drawing
+"""
+
 def pt(x, y, x_offset=4.32, y_offset=2.43, scale=0.0045):
     """
     Translates a point into space, given offsets and scale amount.
@@ -27,15 +54,16 @@ def get_frame(layer, n):
                 return frame
     return None
 
-def draw_line(frame, p0, p1):
+def draw_line(frame, p0, p1, line_width=5):
     stroke = frame.strokes.new()
     stroke.display_mode = "3DSPACE"
     stroke.points.add(count=2)
     stroke.points[0].co = p0
     stroke.points[1].co = p1
+    stroke.line_width = line_width
     return stroke
 
-def draw_rect(frame, origin, width, height):
+def draw_rect(frame, origin, width, height, line_width=5):
     x, y = origin
     stroke = frame.strokes.new()
     stroke.display_mode = "3DSPACE"
@@ -45,9 +73,10 @@ def draw_rect(frame, origin, width, height):
     stroke.points[2].co = pt(x + width, y + height)
     stroke.points[3].co = pt(x, y + height)
     stroke.points[4].co = pt(x, y)
+    stroke.line_width = 5
     return stroke
 
-def draw_circle(frame, origin, radius, samples=100):
+def draw_circle(frame, origin, radius, samples=100, line_width=5):
     x, y = origin
     stroke = frame.strokes.new()
     stroke.display_mode = "3DSPACE"
@@ -58,6 +87,7 @@ def draw_circle(frame, origin, radius, samples=100):
             radius * math.cos(theta) + x,
             radius * math.sin(theta) + y
         )
+    stroke.line_width = line_width
     return stroke
 
 def test0():
