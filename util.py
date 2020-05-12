@@ -1,3 +1,8 @@
+"""
+Blender Utilities
+v0.0.0
+"""
+
 import bpy
 import math
 
