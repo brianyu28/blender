@@ -183,6 +183,28 @@ def from_units(units):
     return units / UNIT_SCALE
 
 """
+3D
+"""
+
+def toggle_object_visibility(obj, frame, show):
+    if isinstance(obj, str):
+        obj = bpy.data.objects.get(obj)
+    obj.hide_viewport = show
+    obj.hide_render = show
+    obj.keyframe_insert("hide_viewport", frame=frame - 1)
+    obj.keyframe_insert("hide_render", frame=frame - 1)
+    obj.hide_viewport = not show
+    obj.hide_render = not show
+    obj.keyframe_insert("hide_viewport", frame=frame)
+    obj.keyframe_insert("hide_render", frame=frame)
+
+def show_at(obj, frame):
+    toggle_object_visibility(obj, frame, True)
+
+def hide_at(obj, frame):
+    toggle_object_visibility(obj, frame, False)
+
+"""
 Test code
 """
 
