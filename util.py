@@ -26,10 +26,7 @@ def create_object_from_template(template_name, name=None, collection=None, scale
     template_obj = bpy.data.objects.get(template_name)
     obj = template_obj.copy()
     obj.data = template_obj.data.copy()
-    if collection is None:
-        coll = bpy.context.scene.collection
-    else:
-        coll = bpy.data.collections.get(collection)
+    coll = resolve_coll(collection)
     coll.objects.link(obj)
     if name is not None:
         obj.name = name
@@ -42,3 +39,19 @@ def create_object_from_template(template_name, name=None, collection=None, scale
     if scale is not None:
         obj.scale = (scale, scale, scale)
     return obj
+
+def resolve_object(obj):
+    if isinstance(obj, str):
+        return bpy.data.objects[obj]
+    return obj
+
+def resolve_coll(coll):
+    if coll is None:
+        return bpy.context.scene.collection
+    elif isinstance(coll, str):
+        return bpy.data.collections[coll]
+    else:
+        return coll
+
+def selected():
+    return list(bpy.context.selected_objects)
