@@ -55,3 +55,12 @@ def resolve_coll(coll):
 
 def selected():
     return list(bpy.context.selected_objects)
+
+def change_material(obj, node, output, start, end, frame, duration=30):
+    obj = resolve_object(obj)
+    value = obj.material_slots[0].material.node_tree.nodes[node].outputs[output]
+    value.default_value = start
+    value.keyframe_insert("default_value", frame=frame-30)
+    value.default_value = end
+    value.keyframe_insert("default_value", frame=frame)
+
