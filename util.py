@@ -22,6 +22,16 @@ def show_at(obj, frame, children=True):
 def hide_at(obj, frame, children=True):
     toggle_object_visibility(obj, frame, False, children=children)
 
+def show_now(children=True):
+    frame = bpy.context.scene.frame_current
+    for obj in bpy.context.selected_objects:
+        show_at(obj, frame, children=children)
+
+def hide_now(children=True):
+    frame = bpy.context.scene.frame_current
+    for obj in bpy.context.selected_objects:
+        hide_at(obj, frame, children=children)
+
 def create_object_from_template(template_name, name=None, collection=None, scale=None):
     template_obj = bpy.data.objects.get(template_name)
     obj = template_obj.copy()
@@ -64,3 +74,14 @@ def change_material(obj, node, output, start, end, frame, duration=30):
     value.default_value = end
     value.keyframe_insert("default_value", frame=frame)
 
+def set_material(obj, node, output, value):
+    obj = resolve_object(obj)
+    node = obj.material_slots[0].material.node_tree.nodes[node].outputs[output]
+    node.default_value = value
+
+def make_material_copy(obj):
+    obj = resolve_object(obj)
+    slot = obj.material_slots[0]
+    if slot.material.users == 1:
+        return
+    slot.material = slot.material.copy()
