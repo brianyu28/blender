@@ -16,6 +16,9 @@ def toggle_object_visibility(obj, frame, show, children=True):
         for child in obj.children:
             toggle_object_visibility(child, frame, show)
 
+def current_frame():
+    return bpy.context.scene.frame_current
+
 def show_at(obj, frame, children=True):
     toggle_object_visibility(obj, frame, True, children=children)
 
@@ -45,14 +48,17 @@ def create_object_from_template(template_name, name=None, collection=None, scale
         child = template_child.copy()
         child.data = template_child.data.copy()
         child.parent = obj
+        child.matrix_parent_inverse = obj.matrix_world.inverted()
         coll.objects.link(child)
     if scale is not None:
         obj.scale = (scale, scale, scale)
     return obj
 
-def resolve_object(obj):
+def resolve_object(obj, graph=None):
     if isinstance(obj, str):
         return bpy.data.objects[obj]
+    if graph is not None:
+        obj = obj.evaluated_get(graph)
     return obj
 
 def resolve_coll(coll):
