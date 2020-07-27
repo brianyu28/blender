@@ -54,12 +54,14 @@ def create_object_from_template(template_name, name=None, collection=None, scale
         obj.scale = (scale, scale, scale)
     return obj
 
-def resolve_object(obj, graph=None):
+def resolve_obj(obj, graph=None):
     if isinstance(obj, str):
-        return bpy.data.objects[obj]
+       obj = bpy.data.objects[obj]
     if graph is not None:
         obj = obj.evaluated_get(graph)
     return obj
+
+resolve_object = resolve_obj
 
 def resolve_coll(coll):
     if coll is None:
@@ -72,11 +74,17 @@ def resolve_coll(coll):
 def selected():
     return list(bpy.context.selected_objects)
 
+ox = lambda x: x.location[0]
+oy = lambda x: x.location[1]
+oz = lambda x: x.location[2]
+def oselect(f):
+    return sorted(selected(), key=f)
+
 def change_material(obj, node, output, start, end, frame, duration=30):
     obj = resolve_object(obj)
     value = obj.material_slots[0].material.node_tree.nodes[node].outputs[output]
     value.default_value = start
-    value.keyframe_insert("default_value", frame=frame-30)
+    value.keyframe_insert("default_value", frame=frame-duration)
     value.default_value = end
     value.keyframe_insert("default_value", frame=frame)
 
@@ -91,3 +99,26 @@ def make_material_copy(obj):
     if slot.material.users == 1:
         return
     slot.material = slot.material.copy()
+
+def rigid_activate(obj=None, frame=None):
+    if obj is None:
+        obj = selected()[0]
+    if frame is None:
+        frame = current_frame()
+    obj = resolve_obj(obj)
+    obj.rigid_body.enabled = False
+    obj.rigid_body.keyframe_insert("enabled", frame=frame - 1)
+    obj.rigid_body.enabled = True
+    obj.rigid_body.keyframe_insert("enabled", frame=frame)
+
+def rigid_deactivate(obj=None, frame=None):
+    if obj is None:
+        obj = selected()[0]
+    if frame is None:
+        frame = current_frame()
+    obj = resolve_obj(obj)
+    obj.rigid_body.enabled = True
+    obj.rigid_body.keyframe_insert("enabled", frame=frame - 1)
+    obj.rigid_body.enabled = False
+    obj.rigid_body.keyframe_insert("enabled", frame=frame)
+
