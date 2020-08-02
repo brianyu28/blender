@@ -77,6 +77,7 @@ def selected():
 ox = lambda x: x.location[0]
 oy = lambda x: x.location[1]
 oz = lambda x: x.location[2]
+oname = lambda x: x.name
 def oselect(f):
     return sorted(selected(), key=f)
 
@@ -122,3 +123,73 @@ def rigid_deactivate(obj=None, frame=None):
     obj.rigid_body.enabled = False
     obj.rigid_body.keyframe_insert("enabled", frame=frame)
 
+def pop_in(obj=None, frame=None, duration=15, delay=None):
+    if frame is None:
+        frame = current_frame()
+    if obj is None or isinstance(obj, list):
+        if isinstance(obj, list):
+            objs = obj
+        else:
+            objs = selected()
+        for i, obj in enumerate(objs):
+            if delay is not None:
+                f = frame + i * delay
+            else:
+                f = frame
+            pop_in(obj, frame=f, duration=duration)
+        return
+    obj = resolve_obj(obj)
+    show_at(obj, frame)
+    obj.scale[0] = 0
+    obj.scale[1] = 0
+    obj.scale[2] = 0
+    obj.keyframe_insert("scale", frame=frame)
+    obj.scale[0] = 1
+    obj.scale[1] = 1
+    obj.scale[2] = 1
+    obj.keyframe_insert("scale", frame=frame + duration)
+
+def pop_out(obj=None, frame=None, duration=15, delay=None):
+    if frame is None:
+        frame = current_frame()
+    if obj is None or isinstance(obj, list):
+        if isinstance(obj, list):
+            objs = obj
+        else:
+            objs = selected()
+        for i, obj in enumerate(objs):
+            if delay is not None:
+                f = frame + i * delay
+            else:
+                f = frame
+            pop_out(obj, frame=f, duration=duration)
+        return
+    obj = resolve_obj(obj)
+    obj.scale[0] = 1
+    obj.scale[1] = 1
+    obj.scale[2] = 1
+    obj.keyframe_insert("scale", frame=frame)
+    obj.scale[0] = 0
+    obj.scale[1] = 0
+    obj.scale[2] = 0
+    obj.keyframe_insert("scale", frame=frame + duration)
+    hide_at(obj, frame + duration)
+
+def flash_square(obj=None, frame=None, duration=30, hide_duration=30):
+    """adapted from 0013.binheap"""
+    if obj is None:
+        obj = selected()[0]
+    obj = resolve_object(obj)
+    if frame is None:
+        frame = current_frame()
+    show_at(obj, frame)
+    unit_duration = duration / 4
+    for i in range(4):
+        obj.data.shape_keys.key_blocks[f"Edge {i+1}"].value = 1
+        obj.data.shape_keys.key_blocks[f"Edge {i+1}"].keyframe_insert("value", frame=frame)
+        frame = frame + unit_duration
+        obj.data.shape_keys.key_blocks[f"Edge {i+1}"].value = 0
+        obj.data.shape_keys.key_blocks[f"Edge {i+1}"].keyframe_insert("value", frame=round(frame))
+    make_material_copy(obj)
+    change_material(obj, "Value", "Value", 0, 1, frame + hide_duration, hide_duration)
+    hide_at(obj, frame + hide_duration)
